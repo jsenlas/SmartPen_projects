@@ -1,9 +1,0 @@
-p2p_client_app.c:177:6:P2PC_APP_Init	16	static
-p2p_client_app.c:215:6:P2PC_APP_Notification	24	static
-p2p_client_app.c:263:6:P2PC_APP_SW1_Button_Action	8	static
-p2p_client_app.c:282:30:Event_Handler	88	static
-p2p_client_app.c:569:6:Gatt_Notification	16	static
-p2p_client_app.c:621:9:P2P_Client_APP_Get_State	4	static
-p2p_client_app.c:630:12:Write_Char	24	static
-p2p_client_app.c:660:6:Button_Trigger_Received	8	static
-p2p_client_app.c:677:6:Update_Service	16	static
