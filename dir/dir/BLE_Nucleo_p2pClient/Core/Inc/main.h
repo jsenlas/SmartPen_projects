@@ -64,7 +64,8 @@ void Error_Handler(void);
 void   MX_LPUART1_UART_Init(void);
 void   MX_USART1_UART_Init(void);
 /* USER CODE BEGIN Private defines */
-
+void str_printf(char *data);
+void int_printf(int data);
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

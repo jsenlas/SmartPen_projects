@@ -92,6 +92,8 @@ static void Reset_IPCC( void );
 static void Reset_BackupDomain( void );
 static void Init_Exti( void );
 static void Config_HSE(void);
+void str_printf(char *data);
+void int_printf(int data);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -142,6 +144,7 @@ int main(void)
   MX_RF_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
+  MX_USART1_UART_Init();
 
   /* USER CODE END 2 */
 
@@ -149,7 +152,10 @@ int main(void)
   APPE_Init();
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	while(1)
+
+  str_printf("Initialization complete and application is running\n");
+
+  while(1)
 	{
 		UTIL_SEQ_Run( UTIL_SEQ_DEFAULT );
     /* USER CODE END WHILE */
@@ -640,6 +646,36 @@ void HAL_Delay(uint32_t Delay)
     __WFI( );
   }
 }
+
+/* Prints integers via UART */
+void int_printf(int data)
+{
+	char buf[10];
+	char *buf_prt = buf;
+	itoa(data, buf_prt, 10);
+	str_printf(buf);
+}
+/* Prints strings via UART */
+/* may need to merge these two functions into one that makes char buffer and sends the data once */
+void str_printf(char *data)
+{
+	HAL_StatusTypeDef state = HAL_UART_Transmit(&huart1, (uint8_t *)data, strlen((const char *)data), 0xFFFF);
+	switch (state) {
+		case HAL_OK:
+			break;
+		case HAL_ERROR:
+			break;
+		case HAL_BUSY:
+			break;
+		case HAL_TIMEOUT:
+			break;
+		default:
+			break;
+	}
+}
+
+
+
 /* USER CODE END 4 */
 
 /**
