@@ -31,7 +31,6 @@
 
 #include "stm32_seq.h"
 #include "app_ble.h"
-#include <stdio.h>
 
 /* USER CODE BEGIN Includes */
 
@@ -131,32 +130,11 @@ typedef struct
 
 } P2P_Client_App_Context_t;
 
-
-typedef struct
-{
-	uint16_t 	accx;
-	uint16_t 	accy;
-	uint16_t 	accz;
-	uint16_t 	gyrox;
-	uint16_t 	gyroy;
-	uint16_t 	gyroz;
-	uint16_t 	magx;
-	uint16_t 	magy;
-	uint16_t 	magz;
-	uint16_t	p_one;
-	uint16_t	p_two;
-	uint16_t	p_three;
-	//uint16_t	p_four;
-	//uint16_t	p_five;
-} MotionData_t;
-
-MotionData_t MotionData;
-
 /* USER CODE END PTD */
 
 /* Private defines ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-UART_HandleTypeDef huart1;
+
 /* USER CODE END PD */
 
 /* Private macros -------------------------------------------------------------*/
@@ -164,14 +142,7 @@ UART_HandleTypeDef huart1;
         (uint16_t)((uint16_t)(*((uint8_t *)ptr))) |   \
         (uint16_t)((((uint16_t)(*((uint8_t *)ptr + 1))) << 8))
 /* USER CODE BEGIN PM */
-// PRINTF
-#ifdef __GNUC__
-/* With GCC, small printf (option LD Linker->Libraries->Small printf
-   set to 'Yes') calls __io_putchar() */
-#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
-#else
-#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#endif /* __GNUC__ */
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -195,8 +166,6 @@ static SVCCTL_EvtAckStatus_t Event_Handler(void *Event);
 static tBleStatus Write_Char(uint16_t UUID, uint8_t Service_Instance, uint8_t *pPayload);
 static void Button_Trigger_Received( void );
 static void Update_Service( void );
-void getMotionData(MotionData_t* data);
-void print_motion_data();
 /* USER CODE END PFP */
 
 /* Functions Definition ------------------------------------------------------*/
@@ -293,41 +262,10 @@ void P2PC_APP_Notification(P2PC_APP_ConnHandle_Not_evt_t *pNotification)
 /* USER CODE BEGIN FD */
 void P2PC_APP_SW1_Button_Action(void)
 {
-  print_motion_data();
+
   UTIL_SEQ_SetTask(1<<CFG_TASK_SW1_BUTTON_PUSHED_ID, CFG_SCH_PRIO_0);
-}
-
-void print_motion_data()
-{
-	getMotionData(&MotionData);
-	str_printf("accx: ");
-	int_printf(MotionData.accx);
-	str_printf(" accy: ");
-	int_printf(MotionData.accy);
-	str_printf(" accz: ");
-	int_printf(MotionData.accz);
-	str_printf(" gyrox: ");
-	int_printf(MotionData.gyrox);
-	str_printf(" gyroy: ");
-	int_printf(MotionData.gyroy);
-	str_printf(" gyroz: ");
-	int_printf(MotionData.gyroz);
-	str_printf(" magx: ");
-	int_printf(MotionData.magx);
-	str_printf(" magy: ");
-	int_printf(MotionData.magy);
-	str_printf(" magz: ");
-	int_printf(MotionData.magz);
-	str_printf(" p_one: ");
-	int_printf(MotionData.p_one);
-	str_printf(" p_two: ");
-	int_printf(MotionData.p_two);
-	str_printf(" p_three: ");
-	int_printf(MotionData.p_three);
-	str_printf("\n");
 
 }
-
 /* USER CODE END FD */
 
 /*************************************************************
@@ -345,7 +283,7 @@ static SVCCTL_EvtAckStatus_t Event_Handler(void *Event)
 {
   SVCCTL_EvtAckStatus_t return_value;
   hci_event_pckt *event_pckt;
-  evt_blue_aci *blue_evt;
+  evt_blecore_aci *blecore_evt;
 
   P2P_Client_App_Notification_evt_t Notification;
 
@@ -354,15 +292,15 @@ static SVCCTL_EvtAckStatus_t Event_Handler(void *Event)
 
   switch(event_pckt->evt)
   {
-    case EVT_VENDOR:
+    case HCI_VENDOR_SPECIFIC_DEBUG_EVT_CODE:
     {
-      blue_evt = (evt_blue_aci*)event_pckt->data;
-      switch(blue_evt->ecode)
+      blecore_evt = (evt_blecore_aci*)event_pckt->data;
+      switch(blecore_evt->ecode)
       {
 
-        case EVT_BLUE_ATT_READ_BY_GROUP_TYPE_RESP:
+        case ACI_ATT_READ_BY_GROUP_TYPE_RESP_VSEVT_CODE:
         {
-          aci_att_read_by_group_type_resp_event_rp0 *pr = (void*)blue_evt->data;
+          aci_att_read_by_group_type_resp_event_rp0 *pr = (void*)blecore_evt->data;
           uint8_t numServ, i, idx;
           uint16_t uuid, handle;
 
@@ -434,10 +372,10 @@ static SVCCTL_EvtAckStatus_t Event_Handler(void *Event)
         }
         break;
 
-        case EVT_BLUE_ATT_READ_BY_TYPE_RESP:
+        case ACI_ATT_READ_BY_TYPE_RESP_VSEVT_CODE:
         {
 
-          aci_att_read_by_type_resp_event_rp0 *pr = (void*)blue_evt->data;
+          aci_att_read_by_type_resp_event_rp0 *pr = (void*)blecore_evt->data;
           uint8_t idx;
           uint16_t uuid, handle;
 
@@ -507,9 +445,9 @@ static SVCCTL_EvtAckStatus_t Event_Handler(void *Event)
         }
         break;
 
-        case EVT_BLUE_ATT_FIND_INFORMATION_RESP:
+        case ACI_ATT_FIND_INFO_RESP_VSEVT_CODE:
         {
-          aci_att_find_info_resp_event_rp0 *pr = (void*)blue_evt->data;
+          aci_att_find_info_resp_event_rp0 *pr = (void*)blecore_evt->data;
 
           uint8_t numDesc, idx, i;
           uint16_t uuid, handle;
@@ -559,11 +497,11 @@ static SVCCTL_EvtAckStatus_t Event_Handler(void *Event)
             }
           }
         }
-        break; /*EVT_BLUE_ATT_FIND_INFORMATION_RESP*/
+        break; /*ACI_ATT_FIND_INFO_RESP_VSEVT_CODE*/
 
-        case EVT_BLUE_GATT_NOTIFICATION:
+        case ACI_GATT_NOTIFICATION_VSEVT_CODE:
         {
-          aci_gatt_notification_event_rp0 *pr = (void*)blue_evt->data;
+          aci_gatt_notification_event_rp0 *pr = (void*)blecore_evt->data;
           uint8_t index;
 
           index = 0;
@@ -589,13 +527,13 @@ static SVCCTL_EvtAckStatus_t Event_Handler(void *Event)
             }
           }
         }
-        break;/* end EVT_BLUE_GATT_NOTIFICATION */
+        break;/* end ACI_GATT_NOTIFICATION_VSEVT_CODE */
 
-        case EVT_BLUE_GATT_PROCEDURE_COMPLETE:
+        case ACI_GATT_PROC_COMPLETE_VSEVT_CODE:
         {
-          aci_gatt_proc_complete_event_rp0 *pr = (void*)blue_evt->data;
+          aci_gatt_proc_complete_event_rp0 *pr = (void*)blecore_evt->data;
 #if(CFG_DEBUG_APP_TRACE != 0)
-          APP_DBG_MSG("-- GATT : EVT_BLUE_GATT_PROCEDURE_COMPLETE \n");
+          APP_DBG_MSG("-- GATT : ACI_GATT_PROC_COMPLETE_VSEVT_CODE \n");
           APP_DBG_MSG("\n");
 #endif
 
@@ -613,13 +551,13 @@ static SVCCTL_EvtAckStatus_t Event_Handler(void *Event)
 
           }
         }
-        break; /*EVT_BLUE_GATT_PROCEDURE_COMPLETE*/
+        break; /*ACI_GATT_PROC_COMPLETE_VSEVT_CODE*/
         default:
           break;
       }
     }
 
-    break; /* HCI_EVT_VENDOR_SPECIFIC */
+    break; /* HCI_VENDOR_SPECIFIC_DEBUG_EVT_CODE */
 
     default:
       break;
@@ -804,33 +742,6 @@ void Update_Service()
   }
   return;
 }
-
-
-void getMotionData(MotionData_t* data)
-{
-	data->accx = 1;
-	data->accy = 2;
-	data->accz = 3;
-	data->gyrox = 4;
-	data->gyroy = 5;
-	data->gyroz = 6;
-	data->magx = 7;
-	data->magy = 8;
-	data->magz = 9;
-	data->p_one = 10;
-	data->p_two = 11;
-	data->p_three = 12;
-}
-
-// PRINTF
-#ifdef __GNUC__
-/* With GCC, small printf (option LD Linker->Libraries->Small printf
-   set to 'Yes') calls __io_putchar() */
-#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
-#else
-#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#endif /* __GNUC__ */
-
 /* USER CODE END LF */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

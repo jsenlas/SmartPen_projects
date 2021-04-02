@@ -39,8 +39,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "app_entry.h"
-#include "app_common.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -67,9 +65,12 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+IPCC_HandleTypeDef hipcc;
+
 UART_HandleTypeDef hlpuart1;
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_lpuart1_tx;
+DMA_HandleTypeDef hdma_usart1_tx;
 
 RTC_HandleTypeDef hrtc;
 
@@ -83,6 +84,7 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_RF_Init(void);
 static void MX_RTC_Init(void);
+static void MX_IPCC_Init(void);
 /* USER CODE BEGIN PFP */
 void PeriphClock_Config(void);
 static void Reset_Device( void );
@@ -90,8 +92,6 @@ static void Reset_IPCC( void );
 static void Reset_BackupDomain( void );
 static void Init_Exti( void );
 static void Config_HSE(void);
-void str_printf(char *data);
-void int_printf(int data);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -128,6 +128,9 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
+  /* IPCC initialisation */
+   MX_IPCC_Init();
+
   /* USER CODE BEGIN SysInit */
   PeriphClock_Config();
   Init_Exti(); /**< Configure the system Power Mode */
@@ -138,9 +141,7 @@ int main(void)
   MX_DMA_Init();
   MX_RF_Init();
   MX_RTC_Init();
-
   /* USER CODE BEGIN 2 */
-  MX_USART1_UART_Init();
 
   /* USER CODE END 2 */
 
@@ -148,10 +149,7 @@ int main(void)
   APPE_Init();
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-  str_printf("Initialization complete and application is running\n");
-
-  while(1)
+	while(1)
 	{
 		UTIL_SEQ_Run( UTIL_SEQ_DEFAULT );
     /* USER CODE END WHILE */
@@ -239,6 +237,32 @@ void SystemClock_Config(void)
 #endif
 
   /* USER CODE END Smps */
+}
+
+/**
+  * @brief IPCC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_IPCC_Init(void)
+{
+
+  /* USER CODE BEGIN IPCC_Init 0 */
+
+  /* USER CODE END IPCC_Init 0 */
+
+  /* USER CODE BEGIN IPCC_Init 1 */
+
+  /* USER CODE END IPCC_Init 1 */
+  hipcc.Instance = IPCC;
+  if (HAL_IPCC_Init(&hipcc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IPCC_Init 2 */
+
+  /* USER CODE END IPCC_Init 2 */
+
 }
 
 /**
@@ -407,12 +431,16 @@ static void MX_DMA_Init(void)
 
   /* DMA controller clock enable */
   __HAL_RCC_DMAMUX1_CLK_ENABLE();
+  __HAL_RCC_DMA2_CLK_ENABLE();
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
   /* DMA1_Channel4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 15, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+  /* DMA2_Channel4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Channel4_IRQn, 15, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Channel4_IRQn);
 
 }
 
@@ -612,36 +640,6 @@ void HAL_Delay(uint32_t Delay)
     __WFI( );
   }
 }
-
-/* Prints integers via UART */
-void int_printf(int data)
-{
-	char buf[10];
-	char *buf_prt = buf;
-	itoa(data, buf_prt, 10);
-	str_printf(buf);
-}
-/* Prints strings via UART */
-/* may need to merge these two functions into one that makes char buffer and sends the data once */
-void str_printf(char *data)
-{
-	HAL_StatusTypeDef state = HAL_UART_Transmit(&huart1, (uint8_t *)data, strlen((const char *)data), 0xFFFF);
-	switch (state) {
-		case HAL_OK:
-			break;
-		case HAL_ERROR:
-			break;
-		case HAL_BUSY:
-			break;
-		case HAL_TIMEOUT:
-			break;
-		default:
-			break;
-	}
-}
-
-
-
 /* USER CODE END 4 */
 
 /**

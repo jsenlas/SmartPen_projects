@@ -29,11 +29,12 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32wbxx_hal.h"
+#include "app_conf.h"
+#include "app_entry.h"
+#include "app_common.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
-#include "string.h"
 #include "stm32wbxx_nucleo.h"
 /* USER CODE END Includes */
 
@@ -56,8 +57,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-void str_printf(char *data);
-void int_printf(int data);
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

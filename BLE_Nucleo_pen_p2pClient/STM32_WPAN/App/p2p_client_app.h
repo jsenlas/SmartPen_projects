@@ -48,8 +48,7 @@ typedef struct
 
 }P2PC_APP_ConnHandle_Not_evt_t;
 /* USER CODE BEGIN ET */
-// number of pressure sensors
-#define PRESSURE_SENSORS	3
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
